@@ -1,0 +1,19 @@
+lint.select = [
+    "PLR", # refactoring
+    "PLW", # warning
+    "UP", # pyupgrade
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C",  # flake8-comprehensions
+    "UP", # pyupgrade
+    "YTT", # flake8-2020
+    "ASYNC", # async
+    "NPY",  # numpy
+]
+
+lint.ignore = ["E501", "B012", "B024", "C901", "F401", "F403", "F405", "E402", "PLR0913", "I001"]
+
+target-version = "py312"
