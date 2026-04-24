@@ -3,7 +3,7 @@ from os import getenv
 from dotenv import load_dotenv
 from flask import Flask
 
-from page_analyzer.index import index_bp
+from page_analyzer.routers import index_bp
 
 load_dotenv()
 app = Flask(__name__)
