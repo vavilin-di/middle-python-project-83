@@ -8,7 +8,11 @@ from page_analyzer.database.models.urls import Url as UrlModel
 from page_analyzer.schemas.urls import Url as UrlSchema
 from page_analyzer.schemas.urls import UrlCreate
 
+from .url_checks import url_checks_bp
+
 urls_bp = Blueprint("urls", __name__)
+
+urls_bp.register_blueprint(url_checks_bp, url_prefix="/<int:url_id>/url_checks")
 
 
 @urls_bp.route("/", methods=["GET"])
