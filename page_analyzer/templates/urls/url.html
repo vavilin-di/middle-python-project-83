@@ -1,0 +1,45 @@
+{% extends 'common/common_template.html' %}
+{% block content %}
+  <h1>Сайт: {{ url.name }}</h1>
+  <table class="table table-bordered table-striped" data-test="url">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <td>{{ url.id }}</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="col">Имя</th>
+        <td>{{ url.name }}</td>
+      </tr>
+      <tr>
+        <th scope="col">Дата создания</th>
+        <td>{{ url.created_at.strftime("%Y-%m-%d") }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2 class="pt-5">Проверки</h2>
+  <button class="btn btn-primary w-25 form-control text-bg-primary"
+          type="submit">Запустить проверку</button>
+  <table class="table table-bordered table-striped">
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Код ответа</th>
+      <th scope="col">h1</th>
+      <th scope="col">title</th>
+      <th scope="col">description</th>
+      <th scope="col">Дата создания</th>
+    </tr>
+    {% for check in checks %}
+      <tr>
+        <td>{{ check.id }}</td>
+        <th>{{ check.status_code }}</th>
+        <th>{{ check.h1 }}</th>
+        <th>{{ check.title }}</th>
+        <th>{{ check.description }}</th>
+        <th>{{ check.created_at }}</th>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}
