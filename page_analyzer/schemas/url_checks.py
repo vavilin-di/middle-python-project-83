@@ -17,3 +17,10 @@ class UrlCheck(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UrlCheckResult(BaseModel):
+    status_code: int
+    h1: str
+    title: str
+    description: str
