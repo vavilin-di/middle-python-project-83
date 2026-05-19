@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from pydantic_core import ValidationError
@@ -71,10 +73,9 @@ def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
 def create_url(db: FromDishka[Session]) -> Response | str:
     try:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
-    except ValidationError as validation_error:
-        for error in validation_error.errors():
-            flash(f"Ошибка: {error['msg']}.", "error")
-        return redirect(request.referrer)
+    except ValidationError:
+        flash("Некорректный URL", "error")
+        return redirect(request.referrer, code=HTTPStatus.UNPROCESSABLE_ENTITY)
 
     url_name = str(form_data.name)
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
@@ -82,7 +83,7 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     db_url = UrlModel(name=url_name)
     existing_db_url = db.execute(check_existence_statement).scalars().first()
     if existing_db_url:
-        flash("Ошибка: сайт с указанным url уже добавлен!", "error")
+        flash("Страница уже существует", "error")
         url = UrlSchema.model_validate(existing_db_url)
         return render_template("urls/url.html", url=url)
     db.add(db_url)
