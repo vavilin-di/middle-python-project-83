@@ -1,14 +1,15 @@
+from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from pydantic_core import ValidationError
 from sqlalchemy import func, select
-from werkzeug import Response
-from dishka.integrations.flask import FromDishka, inject
 from sqlalchemy.orm import Session
+from werkzeug import Response
 
-from page_analyzer.database.models.urls import Url as UrlModel
 from page_analyzer.database.models.url_checks import UrlCheck as UrlCheckModel
-from page_analyzer.schemas.urls import Url as UrlSchema, UrlList as UrlListSchema
+from page_analyzer.database.models.urls import Url as UrlModel
+from page_analyzer.schemas.urls import Url as UrlSchema
 from page_analyzer.schemas.urls import UrlCreate
+from page_analyzer.schemas.urls import UrlList as UrlListSchema
 
 from .url_checks import url_checks_bp
 
@@ -87,6 +88,6 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     db.add(db_url)
     db.commit()
     db.refresh(db_url)
-    flash("Сайт успешно добавлен", "success")
+    flash("Страница успешно добавлена", "success")
     url = UrlSchema.model_validate(db_url)
     return render_template("urls/url.html", url=url)
