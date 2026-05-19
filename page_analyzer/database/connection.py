@@ -1,5 +1,5 @@
+from collections.abc import Iterator
 from os import getenv
-from typing import Iterator
 
 from dishka import Provider, Scope, provide
 from dotenv import load_dotenv
