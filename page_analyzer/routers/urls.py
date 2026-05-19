@@ -17,7 +17,7 @@ from .url_checks import url_checks_bp
 
 urls_bp = Blueprint("urls", __name__)
 
-urls_bp.register_blueprint(url_checks_bp, url_prefix="/<int:url_id>/url_checks")
+urls_bp.register_blueprint(url_checks_bp, url_prefix="/<int:url_id>/checks")
 
 
 @urls_bp.route("/", methods=["GET"])
