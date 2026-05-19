@@ -4,7 +4,7 @@ __all__ = ["url_checks_bp"]
 from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, request, url_for
 from pydantic_core import ValidationError
-from requests.exceptions import ConnectionError, HTTPError
+from requests.exceptions import ConnectionError, RequestException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from werkzeug import Response
@@ -43,7 +43,7 @@ def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
 
     try:
         url_check_result = check_site(url)
-    except (ConnectionError, HTTPError) as error:
+    except (ConnectionError, RequestException) as error:
         flash(f"Произошла ошибка при проверке: {error}", "error")
         return redirect(url_for("urls.get_url", url_id=url_id))
 
