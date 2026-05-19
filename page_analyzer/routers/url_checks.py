@@ -1,13 +1,13 @@
 __all__ = ["url_checks_bp"]
 
 
+from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, request, url_for
 from pydantic_core import ValidationError
-from sqlalchemy.orm import Session
-from requests.exceptions import HTTPError
+from requests.exceptions import ConnectionError, HTTPError
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 from werkzeug import Response
-from dishka.integrations.flask import FromDishka, inject
 
 from page_analyzer.database.models.url_checks import UrlCheck as UrlCheckModel
 from page_analyzer.database.models.urls import Url as UrlModel
@@ -43,11 +43,8 @@ def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
 
     try:
         url_check_result = check_site(url)
-    except HTTPError as error:
+    except (ConnectionError, HTTPError) as error:
         flash(f"Произошла ошибка при проверке: {error}", "error")
-        return redirect(url_for("urls.get_url", url_id=url_id))
-    except Exception:
-        flash("Произошла ошибка при проверке", "error")
         return redirect(url_for("urls.get_url", url_id=url_id))
 
     url_check_db = UrlCheckModel(url_id=form_data.url_id, **url_check_result.model_dump())

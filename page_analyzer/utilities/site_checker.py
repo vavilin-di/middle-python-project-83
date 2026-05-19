@@ -9,10 +9,12 @@ from requests import get as get_request
 from page_analyzer.schemas.url_checks import UrlCheckResult
 from page_analyzer.schemas.urls import Url as UrlSchema
 
+REQUEST_TIMEOUT = 5
+
 
 def check_site(url: UrlSchema) -> UrlCheckResult:
     url_string = str(url.name)
-    response = get_request(url_string)
+    response = get_request(url_string, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     status_code = response.status_code
 
