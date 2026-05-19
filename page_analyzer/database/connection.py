@@ -1,11 +1,11 @@
 from os import getenv
 from typing import Iterator
 
+from dishka import Provider, Scope, provide
 from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-from dishka import Provider, Scope, provide
 
 load_dotenv()
 
