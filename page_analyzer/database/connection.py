@@ -3,20 +3,13 @@ from os import getenv
 
 from dishka import Provider, Scope, provide
 from dotenv import load_dotenv
-from sqlalchemy import URL, create_engine
+from sqlalchemy import create_engine, make_url
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = URL.create(
-    "postgresql+psycopg2",
-    username=getenv("DB_USER"),
-    password=getenv("DB_PASSWORD"),
-    host=getenv("DB_HOST"),
-    port=int(getenv("DB_PORT", "5432")),
-    database=getenv("DB_DATABASE"),
-)
+DATABASE_URL = make_url(getenv("DATABASE_URL", "")).set(drivername="postgresql+psycopg2")
 
 
 class Base(DeclarativeBase): ...
