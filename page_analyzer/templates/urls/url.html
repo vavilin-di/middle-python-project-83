@@ -11,7 +11,9 @@
     <tbody>
       <tr>
         <th scope="col">Имя</th>
-        <td>{{ url.name }}</td>
+        <td>
+          <a href="{{ url_for('urls.get_url', url_id=url.id) }}">{{ url.name }}</a>
+        </td>
       </tr>
       <tr>
         <th scope="col">Дата создания</th>
