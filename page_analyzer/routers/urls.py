@@ -1,11 +1,10 @@
-from itertools import starmap
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from pydantic_core import ValidationError
 from sqlalchemy import func, select
 from werkzeug import Response
+from dishka.integrations.flask import FromDishka, inject
+from sqlalchemy.orm import Session
 
-from page_analyzer.database.connection import session_factory
 from page_analyzer.database.models.urls import Url as UrlModel
 from page_analyzer.database.models.url_checks import UrlCheck as UrlCheckModel
 from page_analyzer.schemas.urls import Url as UrlSchema, UrlList as UrlListSchema
@@ -19,7 +18,8 @@ urls_bp.register_blueprint(url_checks_bp, url_prefix="/<int:url_id>/url_checks")
 
 
 @urls_bp.route("/", methods=["GET"])
-def get_all_urls() -> str:
+@inject
+def get_all_urls(db: FromDishka[Session]) -> str:
     last_url_check_subquery = select(
         UrlCheckModel.url_id,
         UrlCheckModel.created_at.label("last_check"),
@@ -38,36 +38,36 @@ def get_all_urls() -> str:
         )
         .order_by(UrlModel.id)
     )
-    with session_factory() as session:
-        db_url_mappings = session.execute(statement).mappings().all()
-        urls = []
-        try:
-            urls = [UrlListSchema(**db_url_mapping).model_dump() for db_url_mapping in db_url_mappings]
-        except ValidationError as validation_error:
-            for error in validation_error.errors():
-                flash(f"Ошибка: {error['msg']}.", "error")
+    db_url_mappings = db.execute(statement).mappings().all()
+    urls = []
+    try:
+        urls = [UrlListSchema(**db_url_mapping).model_dump() for db_url_mapping in db_url_mappings]
+    except ValidationError as validation_error:
+        for error in validation_error.errors():
+            flash(f"Ошибка: {error['msg']}.", "error")
     return render_template("urls/urls.html", urls=urls)
 
 
 @urls_bp.route("/<int:url_id>")
-def get_url(url_id: int) -> Response | str:
+@inject
+def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
     statement = select(UrlModel).where(UrlModel.id == url_id)
-    with session_factory() as session:
-        db_url = session.execute(statement).scalars().first()
-        if db_url is None:
-            flash("Ошибка: сайт не найден", "error")
-            return redirect(url_for("urls.get_all_urls"))
-        try:
-            url = UrlSchema.model_validate(db_url)
-        except ValidationError as validation_error:
-            for error in validation_error.errors():
-                flash(f"Ошибка: {error['msg']}.", "error")
-            return redirect(url_for("urls.get_all_urls"))
+    db_url = db.execute(statement).scalars().first()
+    if db_url is None:
+        flash("Ошибка: сайт не найден", "error")
+        return redirect(url_for("urls.get_all_urls"))
+    try:
+        url = UrlSchema.model_validate(db_url)
+    except ValidationError as validation_error:
+        for error in validation_error.errors():
+            flash(f"Ошибка: {error['msg']}.", "error")
+        return redirect(url_for("urls.get_all_urls"))
     return render_template("urls/url.html", url=url.model_dump())
 
 
 @urls_bp.route("/", methods=["POST"])
-def create_url() -> Response | str:
+@inject
+def create_url(db: FromDishka[Session]) -> Response | str:
     try:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
     except ValidationError as validation_error:
@@ -79,15 +79,14 @@ def create_url() -> Response | str:
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
 
     db_url = UrlModel(name=url_name)
-    with session_factory() as session:
-        existing_db_url = session.execute(check_existence_statement).scalars().first()
-        if existing_db_url:
-            flash("Ошибка: сайт с указанным url уже добавлен!", "error")
-            url = UrlSchema.model_validate(existing_db_url)
-            return render_template("urls/url.html", url=url)
-        session.add(db_url)
-        session.commit()
-        session.refresh(db_url)
+    existing_db_url = db.execute(check_existence_statement).scalars().first()
+    if existing_db_url:
+        flash("Ошибка: сайт с указанным url уже добавлен!", "error")
+        url = UrlSchema.model_validate(existing_db_url)
+        return render_template("urls/url.html", url=url)
+    db.add(db_url)
+    db.commit()
+    db.refresh(db_url)
     flash("Сайт успешно добавлен", "success")
     url = UrlSchema.model_validate(db_url)
     return render_template("urls/url.html", url=url)

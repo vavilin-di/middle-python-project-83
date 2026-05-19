@@ -3,11 +3,12 @@ __all__ = ["url_checks_bp"]
 
 from flask import Blueprint, flash, redirect, request, url_for
 from pydantic_core import ValidationError
+from sqlalchemy.orm import Session
 from requests.exceptions import HTTPError
 from sqlalchemy import select
 from werkzeug import Response
+from dishka.integrations.flask import FromDishka, inject
 
-from page_analyzer.database.connection import session_factory
 from page_analyzer.database.models.url_checks import UrlCheck as UrlCheckModel
 from page_analyzer.database.models.urls import Url as UrlModel
 from page_analyzer.schemas.url_checks import UrlCheckCreate
@@ -18,7 +19,8 @@ url_checks_bp = Blueprint("url_checks", __name__)
 
 
 @url_checks_bp.route("/", methods=["POST"])
-def create_url_check(url_id: int) -> Response | str:
+@inject
+def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
     try:
         form_data = UrlCheckCreate(url_id=url_id)  # type: ignore
     except ValidationError as validation_error:
@@ -27,31 +29,30 @@ def create_url_check(url_id: int) -> Response | str:
         return redirect(request.referrer)
 
     url_existence_check_statement = select(UrlModel).where(UrlModel.id == form_data.url_id)
-    with session_factory() as session:
-        url_db = session.execute(url_existence_check_statement).scalars().first()
-        if url_db is None:
-            flash("Произошла ошибка при проверке: сайт не найден", "error")
-            return redirect(url_for("urls.get_url"))
+    url_db = db.execute(url_existence_check_statement).scalars().first()
+    if url_db is None:
+        flash("Произошла ошибка при проверке: сайт не найден", "error")
+        return redirect(url_for("urls.get_url"))
 
-        try:
-            url = UrlSchema.model_validate(url_db)
-        except ValidationError as validation_error:
-            for error in validation_error.errors():
-                flash(f"Произошла ошибка при проверке: {error['msg']}.", "error")
-            return redirect(url_for("urls.get_url", url_id=url_id))
+    try:
+        url = UrlSchema.model_validate(url_db)
+    except ValidationError as validation_error:
+        for error in validation_error.errors():
+            flash(f"Произошла ошибка при проверке: {error['msg']}.", "error")
+        return redirect(url_for("urls.get_url", url_id=url_id))
 
-        try:
-            url_check_result = check_site(url)
-        except HTTPError as error:
-            flash(f"Произошла ошибка при проверке: {error}", "error")
-            return redirect(url_for("urls.get_url", url_id=url_id))
-        except Exception:
-            flash("Произошла ошибка при проверке", "error")
-            return redirect(url_for("urls.get_url", url_id=url_id))
+    try:
+        url_check_result = check_site(url)
+    except HTTPError as error:
+        flash(f"Произошла ошибка при проверке: {error}", "error")
+        return redirect(url_for("urls.get_url", url_id=url_id))
+    except Exception:
+        flash("Произошла ошибка при проверке", "error")
+        return redirect(url_for("urls.get_url", url_id=url_id))
 
-        url_check_db = UrlCheckModel(url_id=form_data.url_id, **url_check_result.model_dump())
-        session.add(url_check_db)
-        session.commit()
+    url_check_db = UrlCheckModel(url_id=form_data.url_id, **url_check_result.model_dump())
+    db.add(url_check_db)
+    db.commit()
 
     flash("Страница успешно проверена", "success")
     return redirect(url_for("urls.get_url", url_id=url_id))
