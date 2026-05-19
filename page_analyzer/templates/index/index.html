@@ -4,7 +4,7 @@
     <div class="card-body">
       <h1 class="card-title">Анализатор страниц</h1>
       <h6 class="card-subtitle fw-semibold mt-2 mb-2">Бесплатно проверяйте сайты на SEO-пригодность</h6>
-      <form class="row g-2" action="urls/" method="post">
+      <form class="row g-2" action="{{ url_for('urls.create_url') }}" method="post">
         <div class="col">
           <input id="url"
                  class="form-control"

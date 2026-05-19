@@ -21,7 +21,7 @@
   </table>
   <h2 class="pt-5">Проверки</h2>
   <form class="row g-2 pt-2 pb-2"
-        action="{{ url.id }}/url_checks"
+        action="{{ url_for('urls.url_checks.create_url_check', url_id=url.id) }}"
         method="post">
     <div class="col-auto">
       <button class="btn btn-primary form-control text-bg-primary" type="submit">Запустить проверку</button>
