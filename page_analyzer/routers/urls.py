@@ -91,4 +91,4 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     db.refresh(db_url)
     flash("Страница успешно добавлена", "success")
     url = UrlSchema.model_validate(db_url)
-    return render_template("urls/url.html", url=url)
+    return render_template("urls/url.html", url=url.model_dump())
