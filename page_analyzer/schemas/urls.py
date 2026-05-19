@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_serializer
 
 from page_analyzer.schemas.url_checks import UrlCheck
 
@@ -17,6 +17,10 @@ class Url(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> str:
+        return value.strftime("%Y-%m-%d")
+
 
 class UrlList(BaseModel):
     id: int
@@ -25,3 +29,7 @@ class UrlList(BaseModel):
     status_code: int | None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("last_check")
+    def serialize_last_check(self, value: datetime | None) -> str | None:
+        return None if value is None else value.strftime("%Y-%m-%d")

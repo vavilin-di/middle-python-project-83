@@ -26,6 +26,10 @@ class UrlCheck(BaseModel):
             return value
         return value[:MAX_DESCRIPTION_LENGTH] + "..."
 
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> str:
+        return value.strftime("%Y-%m-%d")
+
 
 class UrlCheckResult(BaseModel):
     status_code: int

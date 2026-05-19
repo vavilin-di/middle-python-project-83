@@ -42,7 +42,7 @@ def get_all_urls() -> str:
         db_url_mappings = session.execute(statement).mappings().all()
         urls = []
         try:
-            urls = [UrlListSchema(**db_url_mapping) for db_url_mapping in db_url_mappings]
+            urls = [UrlListSchema(**db_url_mapping).model_dump() for db_url_mapping in db_url_mappings]
         except ValidationError as validation_error:
             for error in validation_error.errors():
                 flash(f"Ошибка: {error['msg']}.", "error")
@@ -63,7 +63,7 @@ def get_url(url_id: int) -> Response | str:
             for error in validation_error.errors():
                 flash(f"Ошибка: {error['msg']}.", "error")
             return redirect(url_for("urls.get_all_urls"))
-    return render_template("urls/url.html", url=url)
+    return render_template("urls/url.html", url=url.model_dump())
 
 
 @urls_bp.route("/", methods=["POST"])
