@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
+
+MAX_DESCRIPTION_LENGTH = 200
 
 
 class UrlCheckCreate(BaseModel):
@@ -17,6 +19,12 @@ class UrlCheck(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("description")
+    def serialize_description(self, value: str | None) -> str | None:
+        if value is None or len(value) <= MAX_DESCRIPTION_LENGTH:
+            return value
+        return value[:MAX_DESCRIPTION_LENGTH] + "..."
 
 
 class UrlCheckResult(BaseModel):

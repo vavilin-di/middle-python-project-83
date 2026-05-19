@@ -16,3 +16,12 @@ class Url(BaseModel):
     checks: list[UrlCheck] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UrlList(BaseModel):
+    id: int
+    name: HttpUrl
+    last_check: datetime | None
+    status_code: int | None
+
+    model_config = ConfigDict(from_attributes=True)
