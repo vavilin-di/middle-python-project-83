@@ -85,7 +85,7 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     if existing_db_url:
         flash("Страница уже существует", "error")
         url = UrlSchema.model_validate(existing_db_url)
-        return render_template("urls/url.html", url=url)
+        return render_template("urls/url.html", url=url.model_dump())
     db.add(db_url)
     db.commit()
     db.refresh(db_url)
