@@ -1,3 +1,5 @@
+__all__ = ["urls_bp"]
+
 from http import HTTPStatus
 
 from dishka.integrations.flask import FromDishka, inject

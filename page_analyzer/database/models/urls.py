@@ -1,3 +1,5 @@
+__all__ = ["Url"]
+
 from datetime import datetime
 
 from sqlalchemy import Date, String, func

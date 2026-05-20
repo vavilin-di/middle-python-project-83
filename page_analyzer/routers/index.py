@@ -1,3 +1,5 @@
+__all__ = ["index_bp"]
+
 from flask import Blueprint, render_template
 
 index_bp = Blueprint("index", __name__)

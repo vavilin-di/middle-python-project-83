@@ -1,4 +1,5 @@
 __all__ = ["shorten_long_string"]
+
 MAX_TEXT_LENGTH = 200
 
 

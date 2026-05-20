@@ -1,3 +1,5 @@
+__all__ = ["UrlCheck"]
+
 from datetime import datetime
 
 from sqlalchemy import Date, ForeignKey, String, func

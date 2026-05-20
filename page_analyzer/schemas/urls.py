@@ -1,3 +1,5 @@
+__all__ = ["UrlCreate", "Url", "UrlList"]
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_serializer, field_validator
@@ -8,14 +10,10 @@ from page_analyzer.schemas.url_checks import UrlCheck
 class UrlCreate(BaseModel):
     name: HttpUrl = Field(max_length=255)
 
-    @field_validator("name", mode='after')
+    @field_validator("name", mode="after")
     @classmethod
     def validate_name(cls, value: HttpUrl) -> HttpUrl:
-        return HttpUrl.build(
-            scheme=value.scheme,
-            host=value.host, # type: ignore
-            port=value.port
-        )
+        return HttpUrl.build(scheme=value.scheme, host=value.host, port=value.port)  # type: ignore
 
 
 class Url(BaseModel):

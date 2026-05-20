@@ -1,3 +1,5 @@
+__all__ = ["app"]
+
 from os import getenv
 
 from dishka import make_container
