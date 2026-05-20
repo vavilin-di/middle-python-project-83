@@ -4,7 +4,7 @@ __all__ = ["url_checks_bp"]
 from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, request, url_for
 from pydantic_core import ValidationError
-from requests.exceptions import ConnectionError, RequestException
+from requests.exceptions import RequestException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from werkzeug import Response
