@@ -29,9 +29,8 @@
       <button class="btn btn-primary form-control text-bg-primary" type="submit">Запустить проверку</button>
     </div>
   </form>
-  {% if url.checks %}
-    <table class="table table-bordered table-striped" data-test="checks">
-      <thead>
+  <table class="table table-bordered table-striped" data-test="checks">
+    <thead>
       <tr>
         <th scope="col">ID</th>
         <th scope="col">Код ответа</th>
@@ -40,8 +39,8 @@
         <th scope="col">description</th>
         <th scope="col">Дата создания</th>
       </tr>
-      </thead>
-      <tbody>
+    </thead>
+    <tbody>
       {% for check in url.checks %}
         <tr>
           <td class="text-break">{{ "" if check.id is none else check.id }}</td>
@@ -52,7 +51,6 @@
           <td class="text-break">{{ "" if check.created_at is none else check.created_at }}</td>
         </tr>
       {% endfor %}
-      </tbody>
-    </table>
-  {% endif %}
+    </tbody>
+  </table>
 {% endblock %}
