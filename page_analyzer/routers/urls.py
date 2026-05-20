@@ -75,7 +75,7 @@ def create_url(db: FromDishka[Session]) -> Response | str:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
     except ValidationError:
         flash("Некорректный URL", "error")
-        return redirect(url_for("index.index"), code=HTTPStatus.UNPROCESSABLE_ENTITY)
+        return redirect(url_for("index.index"))
 
     url_name = str(form_data.name)
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
