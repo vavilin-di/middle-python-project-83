@@ -68,7 +68,7 @@ def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
     return render_template("urls/url.html", url=url.model_dump())
 
 
-@urls_bp.route("/", methods=["POST"])
+@urls_bp.route("", methods=["POST"])
 @inject
 def create_url(db: FromDishka[Session]) -> Response | tuple[str, int]:
     try:
