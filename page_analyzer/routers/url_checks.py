@@ -43,8 +43,8 @@ def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
 
     try:
         url_check_result = check_site(url)
-    except RequestException as error:
-        flash(f"Произошла ошибка при проверке: {error}", "error")
+    except RequestException:
+        flash("Произошла ошибка при проверке", "error")
         return redirect(url_for("urls.get_url", url_id=url_id))
 
     url_check_db = UrlCheckModel(url_id=form_data.url_id, **url_check_result.model_dump())
