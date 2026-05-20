@@ -1,19 +1,22 @@
 __all__ = ["urls_bp"]
 
 from http import HTTPStatus
+from typing import Any
 
 from dishka.integrations.flask import FromDishka, inject
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from pydantic_core import ValidationError
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from werkzeug import Response
 
-from page_analyzer.database.models.url_checks import UrlCheck as UrlCheckModel
-from page_analyzer.database.models.urls import Url as UrlModel
+from page_analyzer.database.models import Url as UrlModel
+from page_analyzer.database.models import UrlCheck as UrlCheckModel
 from page_analyzer.schemas.urls import Url as UrlSchema
 from page_analyzer.schemas.urls import UrlCreate
 from page_analyzer.schemas.urls import UrlList as UrlListSchema
+from page_analyzer.utilities.validation_helpers import flash_validation_errors
 
 from .url_checks import url_checks_bp
 
@@ -57,13 +60,20 @@ def get_all_urls(db: FromDishka[Session]) -> Response | str:
         )
         .order_by(UrlModel.id.desc())
     )
-    db_url_mappings = db.execute(statement).mappings().all()
-    urls = []
+    try:
+        db_url_mappings = db.execute(statement).mappings().all()
+    except SQLAlchemyError:
+        flash("Произошла ошибка при получении записей из БД")
+        db.rollback()
+        return redirect(url_for("index.index"))
+
+    urls: list[dict[str, Any]] = []
+
     try:
         urls = [UrlListSchema(**db_url_mapping).model_dump() for db_url_mapping in db_url_mappings]
     except ValidationError as validation_error:
-        for error in validation_error.errors():
-            flash(f"Ошибка: {error['msg']}.", "error")
+        flash_validation_errors(validation_error, "Ошибка")
+
     return render_template("urls/urls.html", urls=urls)
 
 
@@ -87,16 +97,23 @@ def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
 
     """
     statement = select(UrlModel).where(UrlModel.id == url_id)
-    db_url = db.execute(statement).scalars().first()
+    try:
+        db_url = db.execute(statement).scalars().first()
+    except SQLAlchemyError:
+        flash("Ошибка при получении записи из базы данных", "error")
+        db.rollback()
+        return redirect(url_for("urls.get_all_urls"))
+
     if db_url is None:
         flash("Ошибка: сайт не найден", "error")
         return redirect(url_for("urls.get_all_urls"))
+
     try:
         url = UrlSchema.model_validate(db_url)
     except ValidationError as validation_error:
-        for error in validation_error.errors():
-            flash(f"Ошибка: {error['msg']}.", "error")
+        flash_validation_errors(validation_error, "Ошибка")
         return redirect(url_for("urls.get_all_urls"))
+
     return render_template("urls/url.html", url=url.model_dump())
 
 
@@ -120,7 +137,7 @@ def create_url(db: FromDishka[Session]) -> Response | tuple[str, int]:
     """
 
     try:
-        form_data = UrlCreate(name=request.form["url"])  # type: ignore
+        form_data = UrlCreate(name=request.form.get("url"))  # type: ignore
     except ValidationError:
         flash("Некорректный URL", "error")
         return render_template("index/index.html"), HTTPStatus.UNPROCESSABLE_ENTITY
@@ -128,13 +145,25 @@ def create_url(db: FromDishka[Session]) -> Response | tuple[str, int]:
     url_name = str(form_data.name)
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
 
-    db_url = UrlModel(name=url_name)
-    existing_db_url = db.execute(check_existence_statement).scalars().first()
-    if existing_db_url:
+    try:
+        existing_db_url = db.execute(check_existence_statement).scalars().first()
+    except SQLAlchemyError:
+        flash("Ошибка при проверке наличия страницы", "error")
+        db.rollback()
+        return redirect(url_for("urls.get_all_urls"))
+
+    if existing_db_url is not None:
         flash("Страница уже существует", "error")
         return redirect(url_for("urls.get_url", url_id=existing_db_url.id))
-    db.add(db_url)
-    db.commit()
+
+    db_url = UrlModel(name=url_name)
+    try:
+        db.add(db_url)
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Ошибка при добавлении страницы", "error")
+        return redirect(url_for("urls.get_all_urls"))
     db.refresh(db_url)
     flash("Страница успешно добавлена", "success")
     return redirect(url_for("urls.get_url", url_id=db_url.id))
