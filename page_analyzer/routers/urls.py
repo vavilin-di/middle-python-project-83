@@ -70,12 +70,12 @@ def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
 
 @urls_bp.route("/", methods=["POST"])
 @inject
-def create_url(db: FromDishka[Session]) -> Response | str:
+def create_url(db: FromDishka[Session]) -> Response | tuple[str, int]:
     try:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
     except ValidationError:
         flash("Некорректный URL", "error")
-        return redirect(url_for("index.index"))
+        return render_template("index/index.html"), HTTPStatus.UNPROCESSABLE_ENTITY
 
     url_name = str(form_data.name)
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
