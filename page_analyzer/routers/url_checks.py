@@ -43,7 +43,7 @@ def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
 
     try:
         url_check_result = check_site(url)
-    except (ConnectionError, RequestException) as error:
+    except Exception as error:
         flash(f"Произошла ошибка при проверке: {error}", "error")
         return redirect(url_for("urls.get_url", url_id=url_id))
 
