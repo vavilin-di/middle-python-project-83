@@ -49,4 +49,4 @@ lint.select = [
 
 lint.ignore = ["E501", "B012", "B024", "C901", "F401", "F403", "F405", "E402", "PLR0913", "I001"]
 
-target-version = "py312"
+target-version = "py314"
