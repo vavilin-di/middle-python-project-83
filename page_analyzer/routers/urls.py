@@ -39,7 +39,7 @@ def get_all_urls(db: FromDishka[Session]) -> str:
             last_url_check_subquery,
             (UrlModel.id == last_url_check_subquery.c.url_id) & (last_url_check_subquery.c.row_number == 1),
         )
-        .order_by(UrlModel.id)
+        .order_by(UrlModel.id.desc())
     )
     db_url_mappings = db.execute(statement).mappings().all()
     urls = []
