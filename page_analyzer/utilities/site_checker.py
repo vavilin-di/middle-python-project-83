@@ -13,6 +13,36 @@ REQUEST_TIMEOUT = 5
 
 
 def check_site(url: UrlSchema) -> UrlCheckResult:
+    """Выполняет проверку веб-сайта по указанному URL.
+
+    Отправляет HTTP-запрос к переданному URL, извлекает статус код ответа,
+    заголовок страницы (тег <title>), первый доступный заголовок верхнего уровня ы(тег <h1>) и мета-описание
+    (тег <meta name="description">). Если какой-либо элемент отсутствует,
+    возвращается пустая строка.
+
+    Args:
+        url (UrlSchema): Объект URL, содержащий валидный HTTP/HTTPS адрес.
+
+    Returns:
+        UrlCheckResult: Объект с результатами проверки, содержащий поля:
+            - status_code (int): HTTP статус код ответа.
+            - title (str): Заголовок страницы или пустая строка.
+            - h1 (str): Текст первого тега <h1> или пустая строка.
+            - description (str): Содержимое атрибута content тега <meta> с атрибутом name="description" или пустая строка.
+
+    Raises:
+        requests.exceptions.RequestException: Если произошла ошибка при выполнении
+            HTTP-запроса (таймаут, недоступность сайта и т.д.).
+
+    Examples:
+        >>> from page_analyzer.schemas.urls import Url
+        >>> from page_analyzer.utilities.site_checker import check_site
+        >>> url = Url(name="https://example.com")
+        >>> result = check_site(url)
+        >>> isinstance(result.status_code, int)
+        True
+    """
+
     url_string = str(url.name)
     response = get_request(url_string, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()

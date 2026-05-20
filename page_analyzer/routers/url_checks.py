@@ -21,6 +21,23 @@ url_checks_bp = Blueprint("url_checks", __name__)
 @url_checks_bp.route("/", methods=["POST"])
 @inject
 def create_url_check(url_id: int, db: FromDishka[Session]) -> Response | str:
+    """Создаёт новую проверку для указанного URL.
+
+    Обрабатывает POST-запрос на создание проверки сайта. Функция выполняет
+    следующие шаги:
+    1. Валидирует переданный url_id с помощью схемы UrlCheckCreate.
+    2. Проверяет существование URL в базе данных.
+    3. Получает данные сайта через утилиту check_site.
+    4. Сохраняет результаты проверки в таблицу url_checks.
+
+    Args:
+        url_id (int): Идентификатор URL, для которого создаётся проверка.
+        db (FromDishka[Session]): Сессия базы данных, внедрённая через Dishka.
+
+    Returns:
+        Response | str: Редирект на страницу детального просмотра URL
+        (urls.get_url) с соответствующим flash-сообщением.
+    """
     try:
         form_data = UrlCheckCreate(url_id=url_id)  # type: ignore
     except ValidationError as validation_error:

@@ -24,7 +24,21 @@ urls_bp.register_blueprint(url_checks_bp, url_prefix="/<int:url_id>/checks")
 
 @urls_bp.route("/", methods=["GET"])
 @inject
-def get_all_urls(db: FromDishka[Session]) -> str:
+def get_all_urls(db: FromDishka[Session]) -> Response | str:
+    """
+    Обрабатывает GET-запрос для получения списка всех URL.
+
+    Извлекает все URL из базы данных вместе с информацией о последней проверке
+    (дата последней проверки и статус код). Результаты сортируются по ID в
+    порядке убывания.
+
+    Args:
+        db (FromDishka[Session]): Сессия базы данных, внедряемая через Dishka.
+
+    Returns:
+        Response | str: редирект на index.index при возникновении ошибок при работе с БД,
+        в противном случае - HTML-страница со списком URL (шаблон urls/urls.html).
+    """
     last_url_check_subquery = select(
         UrlCheckModel.url_id,
         UrlCheckModel.created_at.label("last_check"),
@@ -56,6 +70,22 @@ def get_all_urls(db: FromDishka[Session]) -> str:
 @urls_bp.route("/<int:url_id>")
 @inject
 def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
+    """
+    Обрабатывает GET-запрос для получения детальной информации об одном URL.
+
+    Ищет URL по его ID в базе данных. Если URL не найден, отображает ошибку
+    и перенаправляет на список всех URL. Если найден, валидирует данные через
+    Pydantic и отображает страницу с деталями URL.
+
+    Args:
+        url_id (int): Идентификатор URL в базе данных.
+        db (FromDishka[Session]): Сессия базы данных, внедряемая через Dishka.
+
+    Returns:
+        Response | str: Если URL не найден, возвращает редирект (Response).
+        Иначе возвращает HTML-страницу с деталями URL (шаблон urls/url.html).
+
+    """
     statement = select(UrlModel).where(UrlModel.id == url_id)
     db_url = db.execute(statement).scalars().first()
     if db_url is None:
@@ -73,6 +103,22 @@ def get_url(url_id: int, db: FromDishka[Session]) -> Response | str:
 @urls_bp.route("", methods=["POST"])
 @inject
 def create_url(db: FromDishka[Session]) -> Response | tuple[str, int]:
+    """
+    Обрабатывает POST-запрос для создания нового URL.
+
+    Принимает URL из формы, валидирует его с помощью Pydantic. Если URL некорректен,
+    возвращает ошибку 422. Если URL уже существует в базе, перенаправляет на его
+    страницу. Иначе создает новую запись в базе данных.
+
+    Args:
+        db (FromDishka[Session]): Сессия базы данных, внедряемая через Dishka.
+
+    Returns:
+        Response | tuple[str, int]: При успехе - редирект на страницу созданного URL.
+        При ошибке валидации - кортеж (HTML-страница, статус 422).
+        При ошибке базы данных - редирект на список всех URL.
+    """
+
     try:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
     except ValidationError:

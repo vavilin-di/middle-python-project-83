@@ -8,6 +8,14 @@ from page_analyzer.schemas.url_checks import UrlCheck
 
 
 class UrlCreate(BaseModel):
+    """Схема для создания URL.
+
+    Используется для валидации входных данных при добавлении нового URL.
+
+    Attributes:
+        name (HttpUrl): URL-адрес. Максимальная длина 255 символов.
+    """
+
     name: HttpUrl = Field(max_length=255)
 
     @field_validator("name", mode="after")
@@ -17,6 +25,17 @@ class UrlCreate(BaseModel):
 
 
 class Url(BaseModel):
+    """Схема для представления URL с проверками.
+
+    Используется для сериализации данных URL, полученных из базы данных.
+
+    Attributes:
+        id (int): Уникальный идентификатор URL.
+        name (HttpUrl): URL-адрес.
+        created_at (datetime): Дата и время создания записи.
+        checks (list[UrlCheck]): Список проверок URL (по умолчанию пустой).
+    """
+
     id: int
     name: HttpUrl
     created_at: datetime
@@ -30,6 +49,17 @@ class Url(BaseModel):
 
 
 class UrlList(BaseModel):
+    """Схема для отображения списка URL.
+
+    Используется для вывода списка URL с информацией о последней проверке.
+
+    Attributes:
+        id (int): Уникальный идентификатор URL.
+        name (HttpUrl): URL-адрес.
+        last_check (datetime | None): Дата и время последней проверки.
+        status_code (int | None): HTTP-статус последней проверки.
+    """
+
     id: int
     name: HttpUrl
     last_check: datetime | None

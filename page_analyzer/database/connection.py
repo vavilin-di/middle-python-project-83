@@ -17,6 +17,7 @@ DATABASE_URL = make_url(getenv("DATABASE_URL", "")).set(drivername="postgresql+p
 class Base(DeclarativeBase): ...
 
 
+# DI-контейнер для подключений к базе данных
 class DBProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_engine(self) -> Engine:

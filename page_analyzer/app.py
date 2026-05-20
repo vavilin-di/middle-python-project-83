@@ -14,8 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = getenv("SECRET_KEY")
 
+# Добавление DI-контейнера в приложение
 container = make_container(DBProvider())
 setup_dishka(container=container, app=app, auto_inject=True)
 
+# Добавление blueprint'ов
 app.register_blueprint(index_bp)
 app.register_blueprint(urls_bp, url_prefix="/urls")
