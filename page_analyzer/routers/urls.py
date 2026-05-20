@@ -84,7 +84,7 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     existing_db_url = db.execute(check_existence_statement).scalars().first()
     if existing_db_url:
         flash("Страница уже существует", "error")
-        return redirect(url_for("urls.get_url", url_id=db_url.id))
+        return redirect(url_for("urls.get_url", url_id=existing_db_url.id))
     db.add(db_url)
     db.commit()
     db.refresh(db_url)
