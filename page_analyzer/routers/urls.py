@@ -75,7 +75,7 @@ def create_url(db: FromDishka[Session]) -> Response | str:
         form_data = UrlCreate(name=request.form["url"])  # type: ignore
     except ValidationError:
         flash("Некорректный URL", "error")
-        return redirect(request.referrer, code=HTTPStatus.UNPROCESSABLE_ENTITY)
+        return redirect(url_for("index.index"), code=HTTPStatus.UNPROCESSABLE_ENTITY)
 
     url_name = str(form_data.name)
     check_existence_statement = select(UrlModel).where(UrlModel.name == url_name)
@@ -84,11 +84,9 @@ def create_url(db: FromDishka[Session]) -> Response | str:
     existing_db_url = db.execute(check_existence_statement).scalars().first()
     if existing_db_url:
         flash("Страница уже существует", "error")
-        url = UrlSchema.model_validate(existing_db_url)
-        return render_template("urls/url.html", url=url.model_dump())
+        return redirect(url_for("urls.get_url", url_id=db_url.id))
     db.add(db_url)
     db.commit()
     db.refresh(db_url)
     flash("Страница успешно добавлена", "success")
-    url = UrlSchema.model_validate(db_url)
-    return render_template("urls/url.html", url=url.model_dump())
+    return redirect(url_for("urls.get_url", url_id=db_url.id))
